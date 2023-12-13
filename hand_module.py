@@ -1,6 +1,8 @@
 import cv2
 import mediapipe as mp
 import numpy as np
+import web_module as web
+import key_module as key
 
 thumb_tip = 4
 index_tip = 8
@@ -27,7 +29,9 @@ def extract_landmarks(hand_landmarks):
 def live_hand():
     mp_hands = mp.solutions.hands
     hands = mp_hands.Hands()
-
+    
+    web.open_web()
+    
     cap = cv2.VideoCapture(0)  
 
     while True:
@@ -45,6 +49,7 @@ def live_hand():
                 
                 if is_pinch(landmarks, index_tip, thumb_tip, threshold):
                     cv2.putText(frame, 'Pinch', (25, 25), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                    # key.press_key('space')    
                 else:
                     cv2.putText(frame, 'No Pinch', (25, 25), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
                 
