@@ -2,7 +2,8 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import web_module as web
-import key_module as key
+import key_module as keyboard
+import pynput.keyboard as kb
 
 thumb_tip = 4
 index_tip = 8
@@ -23,7 +24,7 @@ def is_pinch(landmarks, index_tip, thumb_tip, threshold=0.04):
 def extract_landmarks(hand_landmarks):
     landmarks = []
     for point in hand_landmarks.landmark:
-        landmarks.extend([point.x, point.y, point.z])
+        landmarks.extend([point.x, point.y, point.z]) 
     return np.array(landmarks)
 
 def live_hand():
@@ -33,6 +34,8 @@ def live_hand():
     web.open_web()
     
     cap = cv2.VideoCapture(0)  
+    
+    isPressed = False
 
     while True:
         _, frame = cap.read()
@@ -44,14 +47,20 @@ def live_hand():
         if frameRGB.multi_hand_landmarks:
             for hand_landmarks in frameRGB.multi_hand_landmarks:
                 landmarks = extract_landmarks(hand_landmarks)
-                print(landmarks)
                 mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
                 
                 if is_pinch(landmarks, index_tip, thumb_tip, threshold):
+                    print("Pinch detected!")
                     cv2.putText(frame, 'Pinch', (25, 25), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                    # key.press_key('space')    
+                    if not isPressed:
+                        keyboard.press_key(kb.Key.space)
+                        isPressed = True
                 else:
+                    print("No pinch.")
                     cv2.putText(frame, 'No Pinch', (25, 25), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                    if isPressed:
+                        keyboard.release_key(kb.Key.space)
+                        isPressed = False
                 
         cv2.imshow('Hand Tracking', frame)
         
@@ -62,4 +71,3 @@ def live_hand():
     cv2.destroyAllWindows()
     
 live_hand()
-
